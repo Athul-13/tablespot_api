@@ -19,7 +19,9 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
@@ -32,7 +34,8 @@
       "@/middleware/*": ["src/middleware/*"],
       "@/routes/*": ["src/routes/*"],
       "@/utils/*": ["src/utils/*"],
-      "@/types/*": ["src/types/*"]
+      "@/types/*": ["src/types/*"],
+      "@/di/*": ["src/di/*"]
     }
   },
   "include": ["src/**/*"],

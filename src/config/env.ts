@@ -20,6 +20,31 @@ const envSchema = z.object({
     .optional()
     .default("10")
     .transform((v) => Number(v)),
+  // Cookies (HTTP-only auth cookies)
+  COOKIE_SECURE: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((v) => v === "true"),
+  COOKIE_SAME_SITE: z
+    .enum(["lax", "strict", "none"])
+    .default("lax"),
+  FRONTEND_URL: z.string().url().default("http://localhost:5173"),
+  // Email (optional in dev for forgot-password)
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z
+    .string()
+    .optional()
+    .default("587")
+    .transform((v) => Number(v)),
+  SMTP_SECURE: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((v) => v === "true"),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
