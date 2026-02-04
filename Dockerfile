@@ -6,5 +6,6 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 COPY . .
+RUN npx prisma generate
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "docker:dev"]
