@@ -22,13 +22,20 @@ export function registerContainer(): void {
   });
 
   tsyringeContainer.register(UserRepositoryToken, {
-    useClass: PrismaUserRepository,
+    useFactory: (c) =>
+      new PrismaUserRepository(c.resolve(PrismaClient) as PrismaClient),
   });
   tsyringeContainer.register(RefreshTokenRepositoryToken, {
-    useClass: PrismaRefreshTokenRepository,
+    useFactory: (c) =>
+      new PrismaRefreshTokenRepository(
+        c.resolve(PrismaClient) as PrismaClient
+      ),
   });
   tsyringeContainer.register(PasswordResetTokenRepositoryToken, {
-    useClass: PrismaPasswordResetTokenRepository,
+    useFactory: (c) =>
+      new PrismaPasswordResetTokenRepository(
+        c.resolve(PrismaClient) as PrismaClient
+      ),
   });
 
   tsyringeContainer.register(JwtServiceToken, {
@@ -39,10 +46,21 @@ export function registerContainer(): void {
   });
 
   tsyringeContainer.register(AuthService, {
-    useClass: AuthService,
+    useFactory: (c) =>
+      new AuthService(
+        c.resolve(UserRepositoryToken) as never,
+        c.resolve(RefreshTokenRepositoryToken) as never,
+        c.resolve(PasswordResetTokenRepositoryToken) as never,
+        c.resolve(JwtServiceToken) as never,
+        c.resolve(EmailServiceToken) as never
+      ),
   });
   tsyringeContainer.register(AuthController, {
-    useClass: AuthController,
+    useFactory: (c) =>
+      new AuthController(
+        c.resolve(AuthService),
+        c.resolve(JwtServiceToken) as never
+      ),
   });
 }
 
