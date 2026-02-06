@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { verifyAccess } from "@/lib/jwt";
+import type { IJwtService } from "@/types/service-interfaces";
 import { AUTH_COOKIE_NAMES } from "@/types/auth";
 import type { AuthUser } from "@/types/auth";
 import { invalidToken } from "@/errors/auth";
@@ -14,7 +14,7 @@ declare global {
 }
 /* eslint-enable @typescript-eslint/no-namespace */
 
-export function authMiddleware(): RequestHandler {
+export function authMiddleware(jwtService: IJwtService): RequestHandler {
   return (req, _res, next) => {
     const token =
       req.cookies?.[AUTH_COOKIE_NAMES.ACCESS_TOKEN] ??
@@ -28,7 +28,7 @@ export function authMiddleware(): RequestHandler {
     }
 
     try {
-      const payload = verifyAccess(token);
+      const payload = jwtService.verifyAccess(token);
       req.user = {
         id: payload.sub,
         email: payload.email,

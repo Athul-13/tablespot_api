@@ -287,4 +287,102 @@ describe("Auth routes (integration)", () => {
       expect(meRes.body).toHaveProperty("id");
     });
   });
+
+  describe("POST /auth/change-password", () => {
+    it("returns 401 when no Authorization header", async () => {
+      const res = await request(app)
+        .post("/auth/change-password")
+        .send({ currentPassword: "old", newPassword: "newpass123" });
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/unauthorized/i);
+    });
+
+    it("returns 200 and success message on valid auth and passwords", async () => {
+      const email = uniqueEmail();
+      const oldPassword = "oldpass123";
+      await request(app)
+        .post("/auth/signup")
+        .send({ name: "Change Password User", email, password: oldPassword });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email, password: oldPassword });
+      expect(loginRes.status).toBe(200);
+      const setCookie = loginRes.headers["set-cookie"];
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie ? [setCookie] : [];
+      const accessCookie = cookies.find((c) => c.startsWith("accessToken="));
+      const cookiePart = accessCookie ? accessCookie.split(";")[0] : "";
+      const accessToken = cookiePart.includes("=")
+        ? cookiePart.slice(cookiePart.indexOf("=") + 1).trim()
+        : null;
+      expect(accessToken).toBeTruthy();
+
+      const changeRes = await request(app)
+        .post("/auth/change-password")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ currentPassword: oldPassword, newPassword: "newpass456" });
+
+      expect(changeRes.status).toBe(200);
+      expect(changeRes.body.message).toMatch(/password changed/i);
+
+      const loginWithNew = await request(app)
+        .post("/auth/login")
+        .send({ email, password: "newpass456" });
+      expect(loginWithNew.status).toBe(200);
+      expect(loginWithNew.body.user).toMatchObject({ email, name: "Change Password User" });
+    });
+
+    it("returns 401 when current password is wrong", async () => {
+      const email = uniqueEmail();
+      await request(app)
+        .post("/auth/signup")
+        .send({ name: "Wrong Current User", email, password: "correctpass" });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email, password: "correctpass" });
+      const setCookie = loginRes.headers["set-cookie"];
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie ? [setCookie] : [];
+      const accessCookie = cookies.find((c) => c.startsWith("accessToken="));
+      const cookiePart = accessCookie ? accessCookie.split(";")[0] : "";
+      const accessToken = cookiePart.includes("=")
+        ? cookiePart.slice(cookiePart.indexOf("=") + 1).trim()
+        : null;
+
+      const res = await request(app)
+        .post("/auth/change-password")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ currentPassword: "wrongcurrent", newPassword: "newpass123" });
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/invalid|password/i);
+    });
+
+    it("returns 400 when body validation fails", async () => {
+      const email = uniqueEmail();
+      await request(app)
+        .post("/auth/signup")
+        .send({ name: "Validation User", email, password: "password" });
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email, password: "password" });
+      const setCookie = loginRes.headers["set-cookie"];
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie ? [setCookie] : [];
+      const accessCookie = cookies.find((c) => c.startsWith("accessToken="));
+      const cookiePart = accessCookie ? accessCookie.split(";")[0] : "";
+      const accessToken = cookiePart.includes("=")
+        ? cookiePart.slice(cookiePart.indexOf("=") + 1).trim()
+        : null;
+
+      const res = await request(app)
+        .post("/auth/change-password")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ currentPassword: "password", newPassword: "short" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("Validation failed");
+      expect(res.body.details).toBeDefined();
+    });
+  });
 });

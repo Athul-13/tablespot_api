@@ -8,7 +8,11 @@ vi.mock("@/config", () => ({
 }));
 import type { RefreshTokenWithUser } from "@/types/repository-interfaces";
 import type { PasswordResetTokenWithUser } from "@/types/repository-interfaces";
-import type { IJwtService, IEmailService } from "@/types/service-interfaces";
+import type {
+  IJwtService,
+  IEmailService,
+  IPasswordHasher,
+} from "@/types/service-interfaces";
 import { AuthService } from "@/services/auth.service";
 import { AuthError } from "@/errors/auth";
 import { env } from "@/config";
@@ -44,6 +48,15 @@ const mockJwtService: IJwtService = {
 
 const mockEmailService: IEmailService = {
   sendPasswordResetLink: vi.fn().mockResolvedValue(undefined),
+};
+
+const mockPasswordHasher: IPasswordHasher = {
+  hash: vi.fn().mockImplementation((plain: string) =>
+    bcrypt.hash(plain, env.BCRYPT_SALT_ROUNDS)
+  ),
+  compare: vi.fn().mockImplementation((plain: string, hashed: string) =>
+    bcrypt.compare(plain, hashed)
+  ),
 };
 
 function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
@@ -88,7 +101,8 @@ describe("AuthService", () => {
       mockRefreshTokenRepo as never,
       mockPasswordResetRepo as never,
       mockJwtService,
-      mockEmailService
+      mockEmailService,
+      mockPasswordHasher
     );
   });
 
@@ -366,6 +380,47 @@ describe("AuthService", () => {
       await expect(
         service.resetPassword("expired-token", "newPassword123")
       ).rejects.toMatchObject({ code: "INVALID_TOKEN", statusCode: 401 });
+
+      expect(mockUserRepo.updatePassword).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("changePassword", () => {
+    it("updates password when user exists and current password is correct", async () => {
+      const currentHash = await bcrypt.hash("currentPass123", env.BCRYPT_SALT_ROUNDS);
+      mockUserRepo.findById.mockResolvedValue(makeUser({ id: "user-1", passwordHash: currentHash }));
+      mockUserRepo.updatePassword.mockResolvedValue(makeUser());
+
+      await service.changePassword("user-1", "currentPass123", "newPassword456");
+
+      expect(mockUserRepo.updatePassword).toHaveBeenCalledWith(
+        "user-1",
+        expect.any(String)
+      );
+      expect(mockPasswordHasher.compare).toHaveBeenCalledWith(
+        "currentPass123",
+        currentHash
+      );
+      expect(mockPasswordHasher.hash).toHaveBeenCalledWith("newPassword456");
+    });
+
+    it("throws invalidCredentials when user not found", async () => {
+      mockUserRepo.findById.mockResolvedValue(null);
+
+      await expect(
+        service.changePassword("missing-user", "current", "newPass123")
+      ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS", statusCode: 401 });
+
+      expect(mockUserRepo.updatePassword).not.toHaveBeenCalled();
+    });
+
+    it("throws invalidCredentials when current password is wrong", async () => {
+      const currentHash = await bcrypt.hash("currentPass123", env.BCRYPT_SALT_ROUNDS);
+      mockUserRepo.findById.mockResolvedValue(makeUser({ passwordHash: currentHash }));
+
+      await expect(
+        service.changePassword("user-1", "wrongCurrent", "newPass123")
+      ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS", statusCode: 401 });
 
       expect(mockUserRepo.updatePassword).not.toHaveBeenCalled();
     });

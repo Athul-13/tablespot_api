@@ -2,13 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { AUTH_COOKIE_NAMES } from "@/types/auth";
-import { invalidToken } from "@/errors/auth";
 
 const mockVerifyAccess = vi.fn();
 
-vi.mock("@/lib/jwt", () => ({
+const mockJwtService = {
   verifyAccess: (token: string) => mockVerifyAccess(token),
-}));
+  signAccess: vi.fn(),
+  signRefresh: vi.fn(),
+  verifyRefresh: vi.fn(),
+  getAccessTokenMaxAgeSeconds: vi.fn(),
+  getRefreshTokenMaxAgeSeconds: vi.fn(),
+};
 
 function createMockReq(overrides: Partial<Request> = {}): Request {
   return {
@@ -34,7 +38,7 @@ describe("authMiddleware", () => {
   it("calls next() with req.user undefined when no token (no cookie, no Bearer header)", async () => {
     const req = createMockReq();
     const next = createMockNext();
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
 
     handler(req, createMockRes(), next);
 
@@ -55,7 +59,7 @@ describe("authMiddleware", () => {
       name: "Test User",
     });
 
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
     handler(req, createMockRes(), next);
 
     expect(mockVerifyAccess).toHaveBeenCalledWith("my-access-token");
@@ -78,7 +82,7 @@ describe("authMiddleware", () => {
       name: "Cookie User",
     });
 
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
     handler(req, createMockRes(), next);
 
     expect(mockVerifyAccess).toHaveBeenCalledWith("cookie-access-token");
@@ -102,7 +106,7 @@ describe("authMiddleware", () => {
       name: "N",
     });
 
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
     handler(req, createMockRes(), next);
 
     expect(mockVerifyAccess).toHaveBeenCalledWith("cookie-token");
@@ -117,7 +121,7 @@ describe("authMiddleware", () => {
       throw new Error("jwt expired");
     });
 
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
     handler(req, createMockRes(), next);
 
     expect(next).toHaveBeenCalledTimes(1);
@@ -141,7 +145,7 @@ describe("authMiddleware", () => {
       name: "Display Name",
     });
 
-    const handler = authMiddleware();
+    const handler = authMiddleware(mockJwtService as never);
     handler(req, createMockRes(), next);
 
     expect(req.user!.name).toBe("Display Name");

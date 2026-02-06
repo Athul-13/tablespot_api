@@ -23,7 +23,13 @@ export const resetPasswordSchema = z.object({
   newPassword: z.string().min(passwordMinLength, `Password must be at least ${passwordMinLength} characters`),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(passwordMinLength, `Password must be at least ${passwordMinLength} characters`),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

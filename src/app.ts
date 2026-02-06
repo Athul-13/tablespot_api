@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { corsMiddleware } from "@/lib/cors";
-import { registerContainer, getAuthController } from "@/di/container";
+import { registerContainer, getAuthController, getJwtService } from "@/di/container";
 import { createAuthRoutes } from "@/routes/auth.routes";
 import { requestIdMiddleware } from "@/middleware/request-id.middleware";
 import { requestLoggerMiddleware } from "@/middleware/request-logger.middleware";
@@ -20,7 +20,8 @@ export function createApp(): express.Express {
   app.use(requestLoggerMiddleware());
 
   const authController = getAuthController();
-  app.use("/auth", createAuthRoutes(authController));
+  const jwtService = getJwtService();
+  app.use("/auth", createAuthRoutes(authController, jwtService));
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });

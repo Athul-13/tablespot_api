@@ -15,3 +15,8 @@ export interface IJwtService {
 export interface IEmailService {
   sendPasswordResetLink(email: string, resetToken: string): Promise<void>;
 }
+
+export interface IPasswordHasher {
+  hash(plainPassword: string): Promise<string>;
+  compare(plainPassword: string, hashedPassword: string): Promise<boolean>;
+}

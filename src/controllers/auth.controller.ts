@@ -8,6 +8,7 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from "@/validation/auth";
 import { getAuthCookieOptions } from "@/lib/cookie-options";
 import { AUTH_COOKIE_NAMES } from "@/types/auth";
@@ -166,6 +167,37 @@ export class AuthController {
           parsed.data.newPassword
         );
         res.status(200).json({ message: "Password reset successfully" });
+      } catch (e) {
+        if (isAuthError(e)) {
+          res.status(e.statusCode).json({ error: e.message });
+          return;
+        }
+        next(e);
+      }
+    };
+  }
+
+  changePassword(): RequestHandler {
+    return async (req, res, next) => {
+      try {
+        if (!req.user) {
+          res.status(401).json({ error: "Unauthorized" });
+          return;
+        }
+        const parsed = changePasswordSchema.safeParse(req.body);
+        if (!parsed.success) {
+          res.status(400).json({
+            error: "Validation failed",
+            details: parsed.error.flatten().fieldErrors,
+          });
+          return;
+        }
+        await this.authService.changePassword(
+          req.user.id,
+          parsed.data.currentPassword,
+          parsed.data.newPassword
+        );
+        res.status(200).json({ message: "Password changed successfully" });
       } catch (e) {
         if (isAuthError(e)) {
           res.status(e.statusCode).json({ error: e.message });

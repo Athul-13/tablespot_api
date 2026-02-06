@@ -5,3 +5,4 @@ export const PasswordResetTokenRepositoryToken = Symbol(
 );
 export const JwtServiceToken = Symbol("IJwtService");
 export const EmailServiceToken = Symbol("IEmailService");
+export const PasswordHasherToken = Symbol("IPasswordHasher");

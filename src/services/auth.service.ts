@@ -1,7 +1,5 @@
 import * as crypto from "crypto";
-import bcrypt from "bcrypt";
 import { injectable, inject } from "tsyringe";
-import { env } from "@/config";
 import type { AuthUser } from "@/types/auth";
 import {
   invalidCredentials,
@@ -12,13 +10,18 @@ import {
 import type { IUserRepository } from "@/types/repository-interfaces";
 import type { IRefreshTokenRepository } from "@/types/repository-interfaces";
 import type { IPasswordResetTokenRepository } from "@/types/repository-interfaces";
-import type { IJwtService, IEmailService } from "@/types/service-interfaces";
+import type {
+  IJwtService,
+  IEmailService,
+  IPasswordHasher,
+} from "@/types/service-interfaces";
 import {
   UserRepositoryToken,
   RefreshTokenRepositoryToken,
   PasswordResetTokenRepositoryToken,
   JwtServiceToken,
   EmailServiceToken,
+  PasswordHasherToken,
 } from "@/di/tokens";
 import type { SignupInput, LoginInput } from "@/validation/auth";
 
@@ -47,17 +50,15 @@ export class AuthService {
     @inject(PasswordResetTokenRepositoryToken)
     private readonly passwordResetRepo: IPasswordResetTokenRepository,
     @inject(JwtServiceToken) private readonly jwtService: IJwtService,
-    @inject(EmailServiceToken) private readonly emailService: IEmailService
+    @inject(EmailServiceToken) private readonly emailService: IEmailService,
+    @inject(PasswordHasherToken) private readonly passwordHasher: IPasswordHasher
   ) {}
 
   async signup(input: SignupInput): Promise<{ user: AuthUser }> {
     const existing = await this.userRepo.findByEmail(input.email);
     if (existing) throw emailAlreadyExists();
 
-    const passwordHash = await bcrypt.hash(
-      input.password,
-      env.BCRYPT_SALT_ROUNDS
-    );
+    const passwordHash = await this.passwordHasher.hash(input.password);
     const user = await this.userRepo.create({
       email: input.email,
       name: input.name,
@@ -71,7 +72,10 @@ export class AuthService {
     const user = await this.userRepo.findByEmail(input.email);
     if (!user) throw invalidCredentials();
 
-    const valid = await bcrypt.compare(input.password, user.passwordHash);
+    const valid = await this.passwordHasher.compare(
+      input.password,
+      user.passwordHash
+    );
     if (!valid) throw invalidCredentials();
 
     const payload = { sub: user.id, email: user.email, name: user.name };
@@ -152,11 +156,26 @@ export class AuthService {
     const stored = await this.passwordResetRepo.findByTokenHash(tokenHash);
     if (!stored || stored.expiresAt < new Date()) throw invalidToken();
 
-    const passwordHash = await bcrypt.hash(
-      newPassword,
-      env.BCRYPT_SALT_ROUNDS
-    );
+    const passwordHash = await this.passwordHasher.hash(newPassword);
     await this.userRepo.updatePassword(stored.userId, passwordHash);
     await this.passwordResetRepo.delete(stored.id);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const user = await this.userRepo.findById(userId);
+    if (!user) throw invalidCredentials();
+
+    const valid = await this.passwordHasher.compare(
+      currentPassword,
+      user.passwordHash
+    );
+    if (!valid) throw invalidCredentials();
+
+    const passwordHash = await this.passwordHasher.hash(newPassword);
+    await this.userRepo.updatePassword(userId, passwordHash);
   }
 }
