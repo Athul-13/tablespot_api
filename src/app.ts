@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import { corsMiddleware } from "@/lib/cors";
 import { registerContainer, getAuthController } from "@/di/container";
 import { createAuthRoutes } from "@/routes/auth.routes";
+import { requestIdMiddleware } from "@/middleware/request-id.middleware";
+import { requestLoggerMiddleware } from "@/middleware/request-logger.middleware";
 import { errorMiddleware } from "@/middleware/error.middleware";
 
 export function createApp(): express.Express {
@@ -14,6 +16,8 @@ export function createApp(): express.Express {
   app.use(corsMiddleware);
   app.use(cookieParser());
   app.use(express.json());
+  app.use(requestIdMiddleware());
+  app.use(requestLoggerMiddleware());
 
   const authController = getAuthController();
   app.use("/auth", createAuthRoutes(authController));

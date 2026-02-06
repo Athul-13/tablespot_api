@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const passwordMinLength = 8;
+const passwordMinLength = 6;
 
 export const signupSchema = z.object({
   name: z.string().min(1, "Name is required").trim(),

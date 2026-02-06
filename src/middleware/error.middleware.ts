@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 
 export function errorMiddleware(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express requires 4-arg signature for error middleware
   _next: NextFunction
@@ -14,10 +14,15 @@ export function errorMiddleware(
     return;
   }
 
+  const meta: Record<string, unknown> = { requestId: req.requestId };
   if (err instanceof Error) {
-    logger.error("Unhandled error", { message: err.message, stack: err.stack });
+    logger.error("Unhandled error", {
+      ...meta,
+      message: err.message,
+      stack: err.stack,
+    });
   } else {
-    logger.error("Unhandled error", { error: err });
+    logger.error("Unhandled error", { ...meta, error: err });
   }
 
   res.status(500).json({ error: "Internal server error" });
