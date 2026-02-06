@@ -40,3 +40,14 @@ export function authMiddleware(jwtService: IJwtService): RequestHandler {
     }
   };
 }
+
+/** Use after authMiddleware. Returns 401 if no user is attached. */
+export function requireAuthMiddleware(): RequestHandler {
+  return (req, res, next) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    next();
+  };
+}

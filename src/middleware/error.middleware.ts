@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { AuthError } from "@/errors/auth";
+import { RestaurantError } from "@/errors/restaurant";
 import { logger } from "@/lib/logger";
 
 export function errorMiddleware(
@@ -10,6 +11,10 @@ export function errorMiddleware(
   _next: NextFunction
 ): void {
   if (err instanceof AuthError) {
+    res.status(err.statusCode).json({ error: err.message });
+    return;
+  }
+  if (err instanceof RestaurantError) {
     res.status(err.statusCode).json({ error: err.message });
     return;
   }

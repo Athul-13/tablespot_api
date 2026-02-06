@@ -17,6 +17,59 @@ model User {
 
   refreshTokens         RefreshToken[]
   passwordResetTokens   PasswordResetToken[]
+  restaurantsCreated    Restaurant[]
+  comments              Comment[]
+  ratings               Rating[]
+}
+
+model Restaurant {
+  id               String    @id @default(cuid())
+  name             String
+  fullAddress      String
+  phone            String
+  cuisineType      String
+  imageUrl         String?
+  createdByUserId  String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  createdByUser User      @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  comments      Comment[]
+  ratings       Rating[]
+
+  @@index([createdByUserId])
+  @@index([cuisineType])
+}
+
+model Comment {
+  id           String   @id @default(cuid())
+  restaurantId String
+  userId       String
+  body         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@index([userId])
+}
+
+model Rating {
+  id           String   @id @default(cuid())
+  restaurantId String
+  userId       String
+  stars        Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, userId])
+  @@index([restaurantId])
+  @@index([userId])
 }
 
 model RefreshToken {

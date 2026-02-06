@@ -2,8 +2,16 @@ import "reflect-metadata";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { corsMiddleware } from "@/lib/cors";
-import { registerContainer, getAuthController, getJwtService } from "@/di/container";
+import {
+  registerContainer,
+  getAuthController,
+  getJwtService,
+  getRestaurantController,
+  getCommentController,
+  getRatingController,
+} from "@/di/container";
 import { createAuthRoutes } from "@/routes/auth.routes";
+import { createRestaurantRoutes } from "@/routes/restaurant.routes";
 import { requestIdMiddleware } from "@/middleware/request-id.middleware";
 import { requestLoggerMiddleware } from "@/middleware/request-logger.middleware";
 import { errorMiddleware } from "@/middleware/error.middleware";
@@ -22,6 +30,20 @@ export function createApp(): express.Express {
   const authController = getAuthController();
   const jwtService = getJwtService();
   app.use("/auth", createAuthRoutes(authController, jwtService));
+
+  const restaurantController = getRestaurantController();
+  const commentController = getCommentController();
+  const ratingController = getRatingController();
+  app.use(
+    "/restaurants",
+    createRestaurantRoutes(
+      restaurantController,
+      commentController,
+      ratingController,
+      jwtService
+    )
+  );
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
