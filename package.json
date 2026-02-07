@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
+    "postinstall": "prisma generate",
     "docker:dev": "npm install && prisma generate && npm run dev",
     "docker:up": "docker compose up",
     "docker:down": "docker compose down",

@@ -44,17 +44,15 @@ export class PrismaCommentRepository implements ICommentRepository {
     });
   }
 
-  private toEntity(
-    comment: {
-      id: string;
-      restaurantId: string;
-      userId: string;
-      body: string;
-      createdAt: Date;
-      updatedAt: Date;
-      user?: { id: string; name: string };
-    }
-  ): CommentEntity {
+  private toEntity(comment: {
+    id: string;
+    restaurantId: string;
+    userId: string;
+    body: string;
+    createdAt: Date;
+    updatedAt: Date;
+    user?: { id: string; name: string };
+  }): CommentEntity {
     return {
       id: comment.id,
       restaurantId: comment.restaurantId,
