@@ -1,58 +1,36 @@
-/** Minimal user shape used by repository callers (e.g. AuthService). */
-export interface UserEntity {
-  id: string;
-  email: string;
-  name: string;
-  passwordHash: string;
-}
+/**
+ * Central re-export of all repository interfaces and entities.
+ * Types are defined per domain in:
+ * - user-repository.types.ts (auth domain)
+ * - restaurant-repository.types.ts
+ * - comment-repository.types.ts
+ * - rating-repository.types.ts
+ */
 
-export interface CreateUserData {
-  email: string;
-  name: string;
-  passwordHash: string;
-  phone?: string | null;
-}
+export type {
+  UserEntity,
+  CreateUserData,
+  RefreshTokenWithUser,
+  PasswordResetTokenWithUser,
+  IUserRepository,
+  IRefreshTokenRepository,
+  IPasswordResetTokenRepository,
+} from "./user-repository.types";
 
-/** Refresh token record with user included (e.g. for refresh flow). */
-export interface RefreshTokenWithUser {
-  id: string;
-  userId: string;
-  expiresAt: Date;
-  user: UserEntity;
-}
+export type {
+  RestaurantEntity,
+  CreateRestaurantData,
+  UpdateRestaurantData,
+  ListRestaurantsFilter,
+  IRestaurantRepository,
+} from "./restaurant-repository.types";
 
-/** Password reset token record with user included. */
-export interface PasswordResetTokenWithUser {
-  id: string;
-  userId: string;
-  expiresAt: Date;
-  user: UserEntity;
-}
+export type {
+  CommentEntity,
+  ICommentRepository,
+} from "./comment-repository.types";
 
-export interface IUserRepository {
-  create(data: CreateUserData): Promise<UserEntity>;
-  findByEmail(email: string): Promise<UserEntity | null>;
-  findById(id: string): Promise<UserEntity | null>;
-  updatePassword(id: string, passwordHash: string): Promise<UserEntity>;
-}
-
-export interface IRefreshTokenRepository {
-  create(
-    userId: string,
-    tokenHash: string,
-    expiresAt: Date
-  ): Promise<{ id: string }>;
-  findByTokenHash(tokenHash: string): Promise<RefreshTokenWithUser | null>;
-  delete(id: string): Promise<void>;
-  deleteByUserId(userId: string): Promise<void>;
-}
-
-export interface IPasswordResetTokenRepository {
-  create(
-    userId: string,
-    tokenHash: string,
-    expiresAt: Date
-  ): Promise<{ id: string }>;
-  findByTokenHash(tokenHash: string): Promise<PasswordResetTokenWithUser | null>;
-  delete(id: string): Promise<void>;
-}
+export type {
+  RatingEntity,
+  IRatingRepository,
+} from "./rating-repository.types";

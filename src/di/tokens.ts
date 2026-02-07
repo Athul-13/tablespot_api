@@ -6,3 +6,7 @@ export const PasswordResetTokenRepositoryToken = Symbol(
 export const JwtServiceToken = Symbol("IJwtService");
 export const EmailServiceToken = Symbol("IEmailService");
 export const PasswordHasherToken = Symbol("IPasswordHasher");
+
+export const RestaurantRepositoryToken = Symbol("IRestaurantRepository");
+export const CommentRepositoryToken = Symbol("ICommentRepository");
+export const RatingRepositoryToken = Symbol("IRatingRepository");
