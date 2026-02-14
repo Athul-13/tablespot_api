@@ -6,9 +6,10 @@ import type {
 } from "@/types/repository-interfaces";
 import { CommentRepositoryToken, RestaurantRepositoryToken } from "@/di/tokens";
 import { restaurantNotFound, commentNotFound, forbidden } from "@/errors/restaurant";
+import { ICommentService } from "./interface/comment-service.interface";
 
 @injectable()
-export class CommentService {
+export class CommentService implements ICommentService {
   constructor(
     @inject(CommentRepositoryToken)
     private readonly commentRepo: ICommentRepository,

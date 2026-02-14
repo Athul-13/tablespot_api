@@ -11,6 +11,10 @@ import {
   RestaurantRepositoryToken,
   CommentRepositoryToken,
   RatingRepositoryToken,
+  AuthServiceToken,
+  RestaurantServiceToken,
+  CommentServiceToken,
+  RatingServiceToken,
 } from "@/di/tokens";
 import { PrismaUserRepository } from "@/repositories/user.repository";
 import { PrismaRefreshTokenRepository } from "@/repositories/refresh-token.repository";
@@ -75,7 +79,7 @@ export function registerContainer(): void {
     useClass: BcryptPasswordHasher,
   });
 
-  tsyringeContainer.register(AuthService, {
+  tsyringeContainer.register(AuthServiceToken, {
     useFactory: (c) =>
       new AuthService(
         c.resolve(UserRepositoryToken) as never,
@@ -89,26 +93,26 @@ export function registerContainer(): void {
   tsyringeContainer.register(AuthController, {
     useFactory: (c) =>
       new AuthController(
-        c.resolve(AuthService),
+        c.resolve(AuthServiceToken) as never,
         c.resolve(JwtServiceToken) as never
       ),
   });
 
-  tsyringeContainer.register(RestaurantService, {
+  tsyringeContainer.register(RestaurantServiceToken, {
     useFactory: (c) =>
       new RestaurantService(
         c.resolve(RestaurantRepositoryToken) as never,
         c.resolve(RatingRepositoryToken) as never
       ),
   });
-  tsyringeContainer.register(CommentService, {
+  tsyringeContainer.register(CommentServiceToken, {
     useFactory: (c) =>
       new CommentService(
         c.resolve(CommentRepositoryToken) as never,
         c.resolve(RestaurantRepositoryToken) as never
       ),
   });
-  tsyringeContainer.register(RatingService, {
+  tsyringeContainer.register(RatingServiceToken, {
     useFactory: (c) =>
       new RatingService(
         c.resolve(RatingRepositoryToken) as never,
@@ -117,13 +121,16 @@ export function registerContainer(): void {
   });
 
   tsyringeContainer.register(RestaurantController, {
-    useFactory: (c) => new RestaurantController(c.resolve(RestaurantService)),
+    useFactory: (c) =>
+      new RestaurantController(c.resolve(RestaurantServiceToken) as never),
   });
   tsyringeContainer.register(CommentController, {
-    useFactory: (c) => new CommentController(c.resolve(CommentService)),
+    useFactory: (c) =>
+      new CommentController(c.resolve(CommentServiceToken) as never),
   });
   tsyringeContainer.register(RatingController, {
-    useFactory: (c) => new RatingController(c.resolve(RatingService)),
+    useFactory: (c) =>
+      new RatingController(c.resolve(RatingServiceToken) as never),
   });
 }
 

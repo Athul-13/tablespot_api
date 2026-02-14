@@ -24,8 +24,10 @@ import {
   PasswordHasherToken,
 } from "@/di/tokens";
 import type { SignupInput, LoginInput } from "@/validation/auth";
+import { IAuthService, LoginResult } from "./interface/auth-service.interface";
+import { env } from "@/config";
 
-const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+const PASSWORD_RESET_EXPIRY_MS = env.PASSWORD_RESET_EXPIRY_MS;
 
 function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -35,14 +37,9 @@ function toAuthUser(id: string, email: string, name: string): AuthUser {
   return { id, email, name };
 }
 
-export interface LoginResult {
-  user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
-}
 
 @injectable()
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
     @inject(UserRepositoryToken) private readonly userRepo: IUserRepository,
     @inject(RefreshTokenRepositoryToken)

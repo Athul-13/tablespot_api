@@ -1,8 +1,9 @@
 import type { RequestHandler } from "express";
-import { injectable } from "tsyringe";
-import { RatingService } from "@/services/rating.service";
+import { inject, injectable } from "tsyringe";
 import { setRatingSchema } from "@/validation/restaurant";
 import type { RestaurantError } from "@/errors/restaurant";
+import { RatingServiceToken } from "@/di/tokens";
+import { IRatingService } from "@/services/interface/rating-service.interface";
 
 function isRestaurantError(e: unknown): e is RestaurantError {
   return e instanceof Error && e.name === "RestaurantError";
@@ -10,7 +11,9 @@ function isRestaurantError(e: unknown): e is RestaurantError {
 
 @injectable()
 export class RatingController {
-  constructor(private readonly ratingService: RatingService) {}
+  constructor(
+    @inject(RatingServiceToken) private readonly ratingService: IRatingService
+  ) {}
 
   setRating(): RequestHandler {
     return async (req, res, next) => {

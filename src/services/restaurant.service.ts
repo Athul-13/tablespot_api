@@ -9,13 +9,14 @@ import type {
 } from "@/types/repository-interfaces";
 import { RestaurantRepositoryToken, RatingRepositoryToken } from "@/di/tokens";
 import { restaurantNotFound, forbidden } from "@/errors/restaurant";
+import { IRestaurantService } from "./interface/restaurant-service.interface";
 
 export interface RestaurantWithRating extends RestaurantEntity {
   averageRating: number;
 }
 
 @injectable()
-export class RestaurantService {
+export class RestaurantService implements IRestaurantService {
   constructor(
     @inject(RestaurantRepositoryToken)
     private readonly restaurantRepo: IRestaurantRepository,

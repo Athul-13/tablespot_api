@@ -1,11 +1,12 @@
 import type { RequestHandler } from "express";
-import { injectable } from "tsyringe";
-import { RestaurantService } from "@/services/restaurant.service";
+import { inject, injectable } from "tsyringe";
 import {
   createRestaurantSchema,
   updateRestaurantSchema,
 } from "@/validation/restaurant";
 import type { RestaurantError } from "@/errors/restaurant";
+import { RestaurantServiceToken } from "@/di/tokens";
+import { IRestaurantService } from "@/services/interface/restaurant-service.interface";
 
 function isRestaurantError(e: unknown): e is RestaurantError {
   return e instanceof Error && e.name === "RestaurantError";
@@ -30,7 +31,9 @@ function parseListQuery(req: { query: Record<string, unknown> }) {
 
 @injectable()
 export class RestaurantController {
-  constructor(private readonly restaurantService: RestaurantService) {}
+  constructor(
+    @inject(RestaurantServiceToken) private readonly restaurantService: IRestaurantService
+  ) {}
 
   create(): RequestHandler {
     return async (req, res, next) => {

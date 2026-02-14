@@ -6,18 +6,13 @@ import type {
 } from "@/types/repository-interfaces";
 import { RatingRepositoryToken, RestaurantRepositoryToken } from "@/di/tokens";
 import { restaurantNotFound, ratingInvalid } from "@/errors/restaurant";
+import { IRatingService, RestaurantRatingResult } from "./interface/rating-service.interface";
 
 const MIN_STARS = 1;
 const MAX_STARS = 5;
 
-export interface RestaurantRatingResult {
-  averageRating: number;
-  totalRatings: number;
-  userRating: number | null;
-}
-
 @injectable()
-export class RatingService {
+export class RatingService implements IRatingService {
   constructor(
     @inject(RatingRepositoryToken)
     private readonly ratingRepo: IRatingRepository,

@@ -1,8 +1,9 @@
 import type { RequestHandler } from "express";
-import { injectable } from "tsyringe";
-import { CommentService } from "@/services/comment.service";
+import { inject, injectable } from "tsyringe";
 import { createCommentSchema } from "@/validation/restaurant";
 import type { RestaurantError } from "@/errors/restaurant";
+import { CommentServiceToken } from "@/di/tokens";
+import { ICommentService } from "@/services/interface/comment-service.interface";
 
 function isRestaurantError(e: unknown): e is RestaurantError {
   return e instanceof Error && e.name === "RestaurantError";
@@ -10,7 +11,9 @@ function isRestaurantError(e: unknown): e is RestaurantError {
 
 @injectable()
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(
+    @inject(CommentServiceToken) private readonly commentService: ICommentService
+  ) {}
 
   add(): RequestHandler {
     return async (req, res, next) => {

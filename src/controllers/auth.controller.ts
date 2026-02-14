@@ -1,8 +1,7 @@
 import type { RequestHandler } from "express";
 import { injectable, inject } from "tsyringe";
-import { AuthService } from "@/services/auth.service";
 import type { IJwtService } from "@/types/service-interfaces";
-import { JwtServiceToken } from "@/di/tokens";
+import { AuthServiceToken, JwtServiceToken } from "@/di/tokens";
 import {
   signupSchema,
   loginSchema,
@@ -13,6 +12,7 @@ import {
 import { getAuthCookieOptions } from "@/lib/cookie-options";
 import { AUTH_COOKIE_NAMES } from "@/types/auth";
 import type { AuthError } from "@/errors/auth";
+import { IAuthService } from "@/services/interface/auth-service.interface";
 
 function isAuthError(e: unknown): e is AuthError {
   return e instanceof Error && e.name === "AuthError";
@@ -21,7 +21,7 @@ function isAuthError(e: unknown): e is AuthError {
 @injectable()
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
+    @inject(AuthServiceToken) private readonly authService: IAuthService,
     @inject(JwtServiceToken) private readonly jwtService: IJwtService
   ) {}
 
