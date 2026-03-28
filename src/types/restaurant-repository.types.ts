@@ -38,6 +38,8 @@ export type RestaurantSort = "newest" | "nearest";
 
 export interface ListRestaurantsFilter {
   cuisineType?: string;
+  /** Case-insensitive substring match on restaurant name (HTTP query param `q`). */
+  q?: string;
   limit?: number;
   offset?: number;
   sort?: RestaurantSort;

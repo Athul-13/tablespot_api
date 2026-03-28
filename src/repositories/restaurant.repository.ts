@@ -67,10 +67,15 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
     if (filters?.sort === "nearest" && filters.lat !== undefined && filters.lng !== undefined) {
       return this.listNearest(filters);
     }
-    const where =
-      filters?.cuisineType !== undefined
-        ? { cuisineType: filters.cuisineType }
-        : {};
+    const where: Prisma.RestaurantWhereInput = {
+      ...(filters?.cuisineType !== undefined && {
+        cuisineType: filters.cuisineType,
+      }),
+      ...(filters?.q !== undefined &&
+        filters.q.length > 0 && {
+          name: { contains: filters.q, mode: "insensitive" },
+        }),
+    };
     const restaurants = await this.prisma.restaurant.findMany({
       where,
       take: filters?.limit ?? undefined,
@@ -101,6 +106,11 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
       ${
         filters.cuisineType
           ? Prisma.sql`AND r."cuisineType" = ${filters.cuisineType}`
+          : Prisma.empty
+      }
+      ${
+        filters.q !== undefined && filters.q.length > 0
+          ? Prisma.sql`AND position(lower(${filters.q}) in lower(r."name")) > 0`
           : Prisma.empty
       }
       ${

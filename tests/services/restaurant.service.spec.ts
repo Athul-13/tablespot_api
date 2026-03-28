@@ -128,6 +128,21 @@ describe("RestaurantService", () => {
 
       expect(mockRestaurantRepo.list).toHaveBeenCalledWith(filters);
     });
+
+    it("passes name search q with other filters to repository", async () => {
+      mockRestaurantRepo.list.mockResolvedValue([]);
+      const filters: ListRestaurantsFilter = {
+        q: "pizza",
+        cuisineType: "Italian",
+        sort: "nearest",
+        lat: 40.7,
+        lng: -74,
+      };
+
+      await service.list(filters);
+
+      expect(mockRestaurantRepo.list).toHaveBeenCalledWith(filters);
+    });
   });
 
   describe("update", () => {

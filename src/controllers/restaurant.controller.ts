@@ -12,39 +12,45 @@ function isRestaurantError(e: unknown): e is RestaurantError {
   return e instanceof Error && e.name === "RestaurantError";
 }
 
+const LIST_RESTAURANTS_Q_MAX_LEN = 200;
+
 function parseListQuery(req: { query: Record<string, unknown> }) {
-  const q = req.query;
+  const query = req.query;
   const cuisineType =
-    typeof q.cuisineType === "string" && q.cuisineType.trim().length > 0
-      ? q.cuisineType.trim()
+    typeof query.cuisineType === "string" && query.cuisineType.trim().length > 0
+      ? query.cuisineType.trim()
+      : undefined;
+  const qRaw =
+    typeof query.q === "string" && query.q.trim().length > 0
+      ? query.q.trim().slice(0, LIST_RESTAURANTS_Q_MAX_LEN)
       : undefined;
   const limit =
-    typeof q.limit === "string" && /^\d+$/.test(q.limit)
-      ? parseInt(q.limit, 10)
+    typeof query.limit === "string" && /^\d+$/.test(query.limit)
+      ? parseInt(query.limit, 10)
       : undefined;
   const offset =
-    typeof q.offset === "string" && /^\d+$/.test(q.offset)
-      ? parseInt(q.offset, 10)
+    typeof query.offset === "string" && /^\d+$/.test(query.offset)
+      ? parseInt(query.offset, 10)
       : undefined;
   const sort =
-    q.sort === "newest" || q.sort === "nearest"
-      ? (q.sort as "newest" | "nearest")
+    query.sort === "newest" || query.sort === "nearest"
+      ? (query.sort as "newest" | "nearest")
       : undefined;
   const lat =
-    typeof q.lat === "string" && q.lat.trim().length > 0 && !Number.isNaN(Number(q.lat))
-      ? Number(q.lat)
+    typeof query.lat === "string" && query.lat.trim().length > 0 && !Number.isNaN(Number(query.lat))
+      ? Number(query.lat)
       : undefined;
   const lng =
-    typeof q.lng === "string" && q.lng.trim().length > 0 && !Number.isNaN(Number(q.lng))
-      ? Number(q.lng)
+    typeof query.lng === "string" && query.lng.trim().length > 0 && !Number.isNaN(Number(query.lng))
+      ? Number(query.lng)
       : undefined;
   const maxDistanceKm =
-    typeof q.maxDistanceKm === "string" &&
-    q.maxDistanceKm.trim().length > 0 &&
-    !Number.isNaN(Number(q.maxDistanceKm))
-      ? Number(q.maxDistanceKm)
+    typeof query.maxDistanceKm === "string" &&
+    query.maxDistanceKm.trim().length > 0 &&
+    !Number.isNaN(Number(query.maxDistanceKm))
+      ? Number(query.maxDistanceKm)
       : undefined;
-  return { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm };
+  return { cuisineType, q: qRaw, limit, offset, sort, lat, lng, maxDistanceKm };
 }
 
 @injectable()
@@ -106,7 +112,7 @@ export class RestaurantController {
   list(): RequestHandler {
     return async (req, res, next) => {
       try {
-        const { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm } = parseListQuery(req);
+        const { cuisineType, q, limit, offset, sort, lat, lng, maxDistanceKm } = parseListQuery(req);
         if (sort === "nearest" && (lat === undefined || lng === undefined)) {
           res.status(400).json({
             error: "lat and lng are required when sort=nearest",
@@ -127,13 +133,14 @@ export class RestaurantController {
         }
         const filters =
           cuisineType !== undefined ||
+          q !== undefined ||
           limit !== undefined ||
           offset !== undefined ||
           sort !== undefined ||
           lat !== undefined ||
           lng !== undefined ||
           maxDistanceKm !== undefined
-            ? { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm }
+            ? { cuisineType, q, limit, offset, sort, lat, lng, maxDistanceKm }
             : undefined;
         const restaurants = await this.restaurantService.list(filters);
         res.json(restaurants);
