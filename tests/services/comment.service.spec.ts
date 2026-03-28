@@ -12,6 +12,8 @@ function makeRestaurant(overrides: Partial<RestaurantEntity> = {}): RestaurantEn
     phone: "+1",
     cuisineType: "Italian",
     imageUrl: null,
+    latitude: null,
+    longitude: null,
     createdByUserId: "user-1",
     createdAt: new Date(),
     updatedAt: new Date(),

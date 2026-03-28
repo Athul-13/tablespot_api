@@ -29,6 +29,8 @@ model Restaurant {
   phone            String
   cuisineType      String
   imageUrl         String?
+  latitude         Float?
+  longitude        Float?
   createdByUserId  String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

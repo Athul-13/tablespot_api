@@ -19,6 +19,8 @@ function makeRestaurant(
     phone: "+1234567890",
     cuisineType: "Italian",
     imageUrl: null,
+    latitude: null,
+    longitude: null,
     createdByUserId: "user-1",
     createdAt: new Date(),
     updatedAt: new Date(),

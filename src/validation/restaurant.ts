@@ -5,6 +5,8 @@ const optionalUrl = z
   .url("Invalid image URL")
   .optional()
   .nullable();
+const optionalLatitude = z.number().min(-90).max(90).optional().nullable();
+const optionalLongitude = z.number().min(-180).max(180).optional().nullable();
 
 export const createRestaurantSchema = z.object({
   name: z.string().min(1, "Name is required").trim(),
@@ -12,6 +14,23 @@ export const createRestaurantSchema = z.object({
   phone: z.string().min(1, "Phone is required").trim(),
   cuisineType: z.string().min(1, "Cuisine type is required").trim(),
   imageUrl: optionalUrl,
+  latitude: optionalLatitude,
+  longitude: optionalLongitude,
+}).superRefine((value, ctx) => {
+  const hasLat = value.latitude !== undefined && value.latitude !== null;
+  const hasLng = value.longitude !== undefined && value.longitude !== null;
+  if (hasLat !== hasLng) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["latitude"],
+      message: "Latitude and longitude must be provided together",
+    });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["longitude"],
+      message: "Latitude and longitude must be provided together",
+    });
+  }
 });
 
 export const updateRestaurantSchema = z.object({
@@ -20,6 +39,23 @@ export const updateRestaurantSchema = z.object({
   phone: z.string().min(1, "Phone is required").trim().optional(),
   cuisineType: z.string().min(1, "Cuisine type is required").trim().optional(),
   imageUrl: optionalUrl,
+  latitude: optionalLatitude,
+  longitude: optionalLongitude,
+}).superRefine((value, ctx) => {
+  const hasLat = value.latitude !== undefined && value.latitude !== null;
+  const hasLng = value.longitude !== undefined && value.longitude !== null;
+  if (hasLat !== hasLng) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["latitude"],
+      message: "Latitude and longitude must be provided together",
+    });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["longitude"],
+      message: "Latitude and longitude must be provided together",
+    });
+  }
 });
 
 export const createCommentSchema = z.object({

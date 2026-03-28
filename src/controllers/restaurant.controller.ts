@@ -26,7 +26,25 @@ function parseListQuery(req: { query: Record<string, unknown> }) {
     typeof q.offset === "string" && /^\d+$/.test(q.offset)
       ? parseInt(q.offset, 10)
       : undefined;
-  return { cuisineType, limit, offset };
+  const sort =
+    q.sort === "newest" || q.sort === "nearest"
+      ? (q.sort as "newest" | "nearest")
+      : undefined;
+  const lat =
+    typeof q.lat === "string" && q.lat.trim().length > 0 && !Number.isNaN(Number(q.lat))
+      ? Number(q.lat)
+      : undefined;
+  const lng =
+    typeof q.lng === "string" && q.lng.trim().length > 0 && !Number.isNaN(Number(q.lng))
+      ? Number(q.lng)
+      : undefined;
+  const maxDistanceKm =
+    typeof q.maxDistanceKm === "string" &&
+    q.maxDistanceKm.trim().length > 0 &&
+    !Number.isNaN(Number(q.maxDistanceKm))
+      ? Number(q.maxDistanceKm)
+      : undefined;
+  return { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm };
 }
 
 @injectable()
@@ -88,12 +106,34 @@ export class RestaurantController {
   list(): RequestHandler {
     return async (req, res, next) => {
       try {
-        const { cuisineType, limit, offset } = parseListQuery(req);
+        const { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm } = parseListQuery(req);
+        if (sort === "nearest" && (lat === undefined || lng === undefined)) {
+          res.status(400).json({
+            error: "lat and lng are required when sort=nearest",
+          });
+          return;
+        }
+        if (lat !== undefined && (lat < -90 || lat > 90)) {
+          res.status(400).json({ error: "lat must be between -90 and 90" });
+          return;
+        }
+        if (lng !== undefined && (lng < -180 || lng > 180)) {
+          res.status(400).json({ error: "lng must be between -180 and 180" });
+          return;
+        }
+        if (maxDistanceKm !== undefined && maxDistanceKm <= 0) {
+          res.status(400).json({ error: "maxDistanceKm must be greater than 0" });
+          return;
+        }
         const filters =
           cuisineType !== undefined ||
           limit !== undefined ||
-          offset !== undefined
-            ? { cuisineType, limit, offset }
+          offset !== undefined ||
+          sort !== undefined ||
+          lat !== undefined ||
+          lng !== undefined ||
+          maxDistanceKm !== undefined
+            ? { cuisineType, limit, offset, sort, lat, lng, maxDistanceKm }
             : undefined;
         const restaurants = await this.restaurantService.list(filters);
         res.json(restaurants);

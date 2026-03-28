@@ -7,6 +7,8 @@ export interface RestaurantEntity {
   phone: string;
   cuisineType: string;
   imageUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
   createdByUserId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -18,6 +20,8 @@ export interface CreateRestaurantData {
   phone: string;
   cuisineType: string;
   imageUrl?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface UpdateRestaurantData {
@@ -26,12 +30,20 @@ export interface UpdateRestaurantData {
   phone?: string;
   cuisineType?: string;
   imageUrl?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
+
+export type RestaurantSort = "newest" | "nearest";
 
 export interface ListRestaurantsFilter {
   cuisineType?: string;
   limit?: number;
   offset?: number;
+  sort?: RestaurantSort;
+  lat?: number;
+  lng?: number;
+  maxDistanceKm?: number;
 }
 
 export interface IRestaurantRepository {
